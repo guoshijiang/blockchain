@@ -1,5 +1,7 @@
 # 从命令行开始解析以太坊update账户的源码
 
+![account](https://github.com/guoshijiang/go-ethereum-code-analysis/blob/master/cmd-process-analysis/img/3.png)
+
 main函数中的命令启动处代码，在main.go中的init函数中存在下面这个命令
 
 	accountCommand
