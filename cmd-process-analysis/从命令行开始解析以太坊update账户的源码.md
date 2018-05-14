@@ -2,7 +2,7 @@
 
 main函数中的命令启动处代码，在main.go中的init函数中存在下面这个命令
 
-		accountCommand
+	accountCommand
 
 在账户更新的命令行代码，这里比较简单，没有什么需要解释的，命令的使用格式为：geth account update [options] <address>
 
@@ -72,38 +72,40 @@ accountUpdate将帐户从以前的格式转换为当前帐户一个，也提供�
 
 尝试解锁指定的账户三次，三次中如果有一次成功，那么就解锁成功，三次中一次都不能解锁账户成功，那么久解锁账户失败
 
-    // tries unlocking the specified account a few times.
-    func unlockAccount(ctx *cli.Context, ks *keystore.KeyStore, address string, i int, passwords []string) (accounts.Account, string) {
-      //获取账户的地址
-      account, err := utils.MakeAddress(ks, address)
-      if err != nil {
-        utils.Fatalf("Could not list accounts: %v", err)
-      }
-      
-      //尝试解锁三次
-      for trials := 0; trials < 3; trials++ {
-        prompt := fmt.Sprintf("Unlocking account %s | Attempt %d/%d", address, trials+1, 3)
-        password := getPassPhrase(prompt, false, i, passwords)
-        err = ks.Unlock(account, password)
-        if err == nil {
-          log.Info("Unlocked account", "address", account.Address.Hex())
-          return account, password
-        }
-        if err, ok := err.(*keystore.AmbiguousAddrError); ok {
-          log.Info("Unlocked account", "address", account.Address.Hex())
-          return ambiguousAddrRecovery(ks, err, password), password
-        }
-        if err != keystore.ErrDecrypt {
-          // No need to prompt again if the error is not decryption-related.
-          break
-        }
-      }
-      // All trials expended to unlock account, bail out
-      // 尝试解锁账户失败
-      utils.Fatalf("Failed to unlock account %s (%v)", address, err)
+	    // tries unlocking the specified account a few times.
+	    func unlockAccount(ctx *cli.Context, ks *keystore.KeyStore, address string, i int, passwords []string) (accounts.Account, string) {
+	      //获取账户的地址
+	      account, err := utils.MakeAddress(ks, address)
+	      if err != nil {
+		utils.Fatalf("Could not list accounts: %v", err)
+	      }
 
-      return accounts.Account{}, ""
-    }
+	      //尝试解锁三次
+	      for trials := 0; trials < 3; trials++ {
+		prompt := fmt.Sprintf("Unlocking account %s | Attempt %d/%d", address, trials+1, 3)
+		password := getPassPhrase(prompt, false, i, passwords)
+		err = ks.Unlock(account, password)
+		if err == nil {
+		  log.Info("Unlocked account", "address", account.Address.Hex())
+		  return account, password
+		}
+		if err, ok := err.(*keystore.AmbiguousAddrError); ok {
+		  log.Info("Unlocked account", "address", account.Address.Hex())
+		  return ambiguousAddrRecovery(ks, err, password), password
+		}
+		if err != keystore.ErrDecrypt {
+		  // No need to prompt again if the error is not decryption-related.
+		  break
+		}
+	      }
+	      // All trials expended to unlock account, bail out
+	      // 尝试解锁账户失败
+	      utils.Fatalf("Failed to unlock account %s (%v)", address, err)
+
+	      return accounts.Account{}, ""
+	    }
+	    
+	    
 MakeAddress将直接指定的帐户转换为十六进制编码的字符串或密钥存储中的一个关键索引，用于内部帐户表示
 
     func MakeAddress(ks *keystore.KeyStore, account string) (accounts.Account, error) {
@@ -131,6 +133,7 @@ MakeAddress将直接指定的帐户转换为十六进制编码的字符串或密
       return accs[index], nil
     }
 
+
 返回所有当前目录中的key文件
 
     func (ks *KeyStore) Accounts() []accounts.Account {
@@ -145,6 +148,7 @@ MakeAddress将直接指定的帐户转换为十六进制编码的字符串或密
       copy(cpy, ac.all)
       return cpy
     }
+
 
 检索与帐户关联的密码，或者从预先加载的密码短语列表中获取密码，或者从用户交互地请求密码
 
@@ -253,23 +257,23 @@ AmbiguousAddrError是试图解锁存在多个文件的地址
 
 更新一个存在的账户
 
-    func (ks *KeyStore) Update(a accounts.Account, passphrase, newPassphrase string) error {
-      a, key, err := ks.getDecryptedKey(a, passphrase)
-      if err != nil {
-        return err
-      }
-      // 将新的加密key存储
-      return ks.storage.StoreKey(a.URL.Path, key, newPassphrase)
-    }
+	    func (ks *KeyStore) Update(a accounts.Account, passphrase, newPassphrase string) error {
+	      a, key, err := ks.getDecryptedKey(a, passphrase)
+	      if err != nil {
+		return err
+	      }
+	      // 将新的加密key存储
+	      return ks.storage.StoreKey(a.URL.Path, key, newPassphrase)
+	    }
 
 获取加密key
 
-    func (ks *KeyStore) getDecryptedKey(a accounts.Account, auth string) (accounts.Account, *Key, error) {
-      a, err := ks.Find(a)
-      if err != nil {
-        return a, nil, err
-      }
-      // 获取key
-      key, err := ks.storage.GetKey(a.Address, a.URL.Path, auth)
-      return a, key, err
-    }
+	    func (ks *KeyStore) getDecryptedKey(a accounts.Account, auth string) (accounts.Account, *Key, error) {
+	      a, err := ks.Find(a)
+	      if err != nil {
+		return a, nil, err
+	      }
+	      // 获取key
+	      key, err := ks.storage.GetKey(a.Address, a.URL.Path, auth)
+	      return a, key, err
+	    }
