@@ -108,152 +108,152 @@ accountUpdate将帐户从以前的格式转换为当前帐户一个，也提供�
 	    
 MakeAddress将直接指定的帐户转换为十六进制编码的字符串或密钥存储中的一个关键索引，用于内部帐户表示
 
-    func MakeAddress(ks *keystore.KeyStore, account string) (accounts.Account, error) {
-      // If the specified account is a valid address, return it
-      // 如果指定的账户是一个无效地址，直接返回
-      if common.IsHexAddress(account) {
-        return accounts.Account{Address: common.HexToAddress(account)}, nil
-      }
-      // Otherwise try to interpret the account as a keystore index
-      // 否则，请尝试将该帐户解析为密钥库索引
-      index, err := strconv.Atoi(account)
-      if err != nil || index < 0 {
-        return accounts.Account{}, fmt.Errorf("invalid account address or index %q", account)
-      }
-      log.Warn("-------------------------------------------------------------------")
-      log.Warn("Referring to accounts by order in the keystore folder is dangerous!")
-      log.Warn("This functionality is deprecated and will be removed in the future!")
-      log.Warn("Please use explicit addresses! (can search via `geth account list`)")
-      log.Warn("-------------------------------------------------------------------")
+	    func MakeAddress(ks *keystore.KeyStore, account string) (accounts.Account, error) {
+	      // If the specified account is a valid address, return it
+	      // 如果指定的账户是一个无效地址，直接返回
+	      if common.IsHexAddress(account) {
+		return accounts.Account{Address: common.HexToAddress(account)}, nil
+	      }
+	      // Otherwise try to interpret the account as a keystore index
+	      // 否则，请尝试将该帐户解析为密钥库索引
+	      index, err := strconv.Atoi(account)
+	      if err != nil || index < 0 {
+		return accounts.Account{}, fmt.Errorf("invalid account address or index %q", account)
+	      }
+	      log.Warn("-------------------------------------------------------------------")
+	      log.Warn("Referring to accounts by order in the keystore folder is dangerous!")
+	      log.Warn("This functionality is deprecated and will be removed in the future!")
+	      log.Warn("Please use explicit addresses! (can search via `geth account list`)")
+	      log.Warn("-------------------------------------------------------------------")
 
-      accs := ks.Accounts()
-      if len(accs) <= index {
-        return accounts.Account{}, fmt.Errorf("index %d higher than number of accounts %d", index, len(accs))
-      }
-      return accs[index], nil
-    }
+	      accs := ks.Accounts()
+	      if len(accs) <= index {
+		return accounts.Account{}, fmt.Errorf("index %d higher than number of accounts %d", index, len(accs))
+	      }
+	      return accs[index], nil
+	    }
 
 
 返回所有当前目录中的key文件
 
-    func (ks *KeyStore) Accounts() []accounts.Account {
-      return ks.cache.accounts()
-    }
+	    func (ks *KeyStore) Accounts() []accounts.Account {
+	      return ks.cache.accounts()
+	    }
 
-    func (ac *accountCache) accounts() []accounts.Account {
-      ac.maybeReload()
-      ac.mu.Lock()
-      defer ac.mu.Unlock()
-      cpy := make([]accounts.Account, len(ac.all))
-      copy(cpy, ac.all)
-      return cpy
-    }
+	    func (ac *accountCache) accounts() []accounts.Account {
+	      ac.maybeReload()
+	      ac.mu.Lock()
+	      defer ac.mu.Unlock()
+	      cpy := make([]accounts.Account, len(ac.all))
+	      copy(cpy, ac.all)
+	      return cpy
+	    }
 
 
 检索与帐户关联的密码，或者从预先加载的密码短语列表中获取密码，或者从用户交互地请求密码
 
-    func getPassPhrase(prompt string, confirmation bool, i int, passwords []string) string {
-      // If a list of passwords was supplied, retrieve from them
-      if len(passwords) > 0 {
-        if i < len(passwords) {
-          return passwords[i]
-        }
-        return passwords[len(passwords)-1]
-      }
-      // Otherwise prompt the user for the password
-      if prompt != "" {
-        fmt.Println(prompt)
-      }
+	    func getPassPhrase(prompt string, confirmation bool, i int, passwords []string) string {
+	      // If a list of passwords was supplied, retrieve from them
+	      if len(passwords) > 0 {
+		if i < len(passwords) {
+		  return passwords[i]
+		}
+		return passwords[len(passwords)-1]
+	      }
+	      // Otherwise prompt the user for the password
+	      if prompt != "" {
+		fmt.Println(prompt)
+	      }
 
-      // 从控制台获取密码
-      password, err := console.Stdin.PromptPassword("Passphrase: ")
-      if err != nil {
-        utils.Fatalf("Failed to read passphrase: %v", err)
-      }
+	      // 从控制台获取密码
+	      password, err := console.Stdin.PromptPassword("Passphrase: ")
+	      if err != nil {
+		utils.Fatalf("Failed to read passphrase: %v", err)
+	      }
 
-      // 从控制台获取确认密码
-      if confirmation {
-        confirm, err := console.Stdin.PromptPassword("Repeat passphrase: ")
-        if err != nil {
-          utils.Fatalf("Failed to read passphrase confirmation: %v", err)
-        }
-        if password != confirm {
-          utils.Fatalf("Passphrases do not match")
-        }
-      }
-      return password
-    }
+	      // 从控制台获取确认密码
+	      if confirmation {
+		confirm, err := console.Stdin.PromptPassword("Repeat passphrase: ")
+		if err != nil {
+		  utils.Fatalf("Failed to read passphrase confirmation: %v", err)
+		}
+		if password != confirm {
+		  utils.Fatalf("Passphrases do not match")
+		}
+	      }
+	      return password
+	    }
 
 根据密码解锁账户
 
-    func (ks *KeyStore) Unlock(a accounts.Account, passphrase string) error {
-      return ks.TimedUnlock(a, passphrase, 0)
-    }
+	    func (ks *KeyStore) Unlock(a accounts.Account, passphrase string) error {
+	      return ks.TimedUnlock(a, passphrase, 0)
+	    }
 
 TimedUnlock使用密码解锁给定帐户。 该帐户在超时期间保持解锁状态。 在程序退出之前，超时值为0会解锁该帐户。 该帐户必须匹配唯一的密钥文件
 如果帐户地址已解锁一段时间，则TimedUnlock扩展或缩短活动解锁超时。如果地址先前无限期解锁，则超时不会更改
 
-    func (ks *KeyStore) TimedUnlock(a accounts.Account, passphrase string, timeout time.Duration) error {
-      a, key, err := ks.getDecryptedKey(a, passphrase)
-      if err != nil {
-        return err
-      }
+	    func (ks *KeyStore) TimedUnlock(a accounts.Account, passphrase string, timeout time.Duration) error {
+	      a, key, err := ks.getDecryptedKey(a, passphrase)
+	      if err != nil {
+		return err
+	      }
 
-      ks.mu.Lock()
-      defer ks.mu.Unlock()
-      u, found := ks.unlocked[a.Address]
-      if found {
-        if u.abort == nil {
-          // The address was unlocked indefinitely, so unlocking
-          // it with a timeout would be confusing.
-          zeroKey(key.PrivateKey)
-          return nil
-        }
-        // Terminate the expire goroutine and replace it below.
-        close(u.abort)
-      }
-      if timeout > 0 {
-        u = &unlocked{Key: key, abort: make(chan struct{})}
-        go ks.expire(a.Address, u, timeout)
-      } else {
-        u = &unlocked{Key: key}
-      }
-      ks.unlocked[a.Address] = u
-      return nil
-    }
-    
+	      ks.mu.Lock()
+	      defer ks.mu.Unlock()
+	      u, found := ks.unlocked[a.Address]
+	      if found {
+		if u.abort == nil {
+		  // The address was unlocked indefinitely, so unlocking
+		  // it with a timeout would be confusing.
+		  zeroKey(key.PrivateKey)
+		  return nil
+		}
+		// Terminate the expire goroutine and replace it below.
+		close(u.abort)
+	      }
+	      if timeout > 0 {
+		u = &unlocked{Key: key, abort: make(chan struct{})}
+		go ks.expire(a.Address, u, timeout)
+	      } else {
+		u = &unlocked{Key: key}
+	      }
+	      ks.unlocked[a.Address] = u
+	      return nil
+	    }
+
 AmbiguousAddrError是试图解锁存在多个文件的地址
 
-    type AmbiguousAddrError struct {
-      Addr    common.Address
-      Matches []accounts.Account
-    }
+	    type AmbiguousAddrError struct {
+	      Addr    common.Address
+	      Matches []accounts.Account
+	    }
 
-    func ambiguousAddrRecovery(ks *keystore.KeyStore, err *keystore.AmbiguousAddrError, auth string) accounts.Account {
-      fmt.Printf("Multiple key files exist for address %x:\n", err.Addr)
-      for _, a := range err.Matches {
-        fmt.Println("  ", a.URL)
-      }
-      fmt.Println("Testing your passphrase against all of them...")
-      var match *accounts.Account
-      for _, a := range err.Matches {
-        if err := ks.Unlock(a, auth); err == nil {
-          match = &a
-          break
-        }
-      }
-      if match == nil {
-        utils.Fatalf("None of the listed files could be unlocked.")
-      }
-      fmt.Printf("Your passphrase unlocked %s\n", match.URL)
-      fmt.Println("In order to avoid this warning, you need to remove the following duplicate key files:")
-      for _, a := range err.Matches {
-        if a != *match {
-          fmt.Println("  ", a.URL)
-        }
-      }
-      return *match
-    }
+	    func ambiguousAddrRecovery(ks *keystore.KeyStore, err *keystore.AmbiguousAddrError, auth string) accounts.Account {
+	      fmt.Printf("Multiple key files exist for address %x:\n", err.Addr)
+	      for _, a := range err.Matches {
+		fmt.Println("  ", a.URL)
+	      }
+	      fmt.Println("Testing your passphrase against all of them...")
+	      var match *accounts.Account
+	      for _, a := range err.Matches {
+		if err := ks.Unlock(a, auth); err == nil {
+		  match = &a
+		  break
+		}
+	      }
+	      if match == nil {
+		utils.Fatalf("None of the listed files could be unlocked.")
+	      }
+	      fmt.Printf("Your passphrase unlocked %s\n", match.URL)
+	      fmt.Println("In order to avoid this warning, you need to remove the following duplicate key files:")
+	      for _, a := range err.Matches {
+		if a != *match {
+		  fmt.Println("  ", a.URL)
+		}
+	      }
+	      return *match
+	    }
 
 更新一个存在的账户
 
