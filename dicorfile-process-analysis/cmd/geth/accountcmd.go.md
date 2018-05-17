@@ -217,6 +217,7 @@
 
 检索与账户相关的密码，查看预加载的密码与账户的密码是否一致
 
+
         func getPassPhrase(prompt string, confirmation bool, i int, passwords []string) string {
           // If a list of passwords was supplied, retrieve from them
           if len(passwords) > 0 {
