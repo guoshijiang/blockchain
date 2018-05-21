@@ -13,4 +13,44 @@
 
    以太坊有四种RPC。HTTP RPC、Inproc RPC、IPC RPC、WS RPC。它们主要的实现逻辑都在rpc/server.go和rpc/client.go。各自根据自己的实现方式派生自己的client实例，建立各自的net.conn通道。由于HTTP RPC是基于短链接请求，实现方式和其他的不太一样
 
+### 4.启动的过程命令
 
+https://github.com/guoshijiang/go-ethereum-code-analysis/blob/master/cmd-process-analysis/img/4.png
+
+
+在上面的图片中，使用linkeye --rpc来启动的原因是代码已被本人修改
+
+### 5.代码过程解析
+
+RPC相关的命令行
+
+    RPCEnabledFlag = cli.BoolFlag{
+        Name:  "rpc",
+        Usage: "Enable the HTTP-RPC server",
+      }
+      RPCListenAddrFlag = cli.StringFlag{
+        Name:  "rpcaddr",
+        Usage: "HTTP-RPC server listening interface",
+        Value: node.DefaultHTTPHost,
+      }
+      RPCPortFlag = cli.IntFlag{
+        Name:  "rpcport",
+        Usage: "HTTP-RPC server listening port",
+        Value: node.DefaultHTTPPort,
+      }
+      RPCCORSDomainFlag = cli.StringFlag{
+        Name:  "rpccorsdomain",
+        Usage: "Comma separated list of domains from which to accept cross origin requests (browser enforced)",
+        Value: "",
+      }
+      RPCVirtualHostsFlag = cli.StringFlag{
+        Name:  "rpcvhosts",
+        Usage: "Comma separated list of virtual hostnames from which to accept requests (server enforced). Accepts '*' wildcard.",
+        Value: strings.Join(node.DefaultConfig.HTTPVirtualHosts, ","),
+      }
+      RPCApiFlag = cli.StringFlag{
+        Name:  "rpcapi",
+        Usage: "API's offered over the HTTP-RPC interface",
+        Value: "",
+      }
+      
